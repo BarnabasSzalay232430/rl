@@ -96,7 +96,7 @@ def run_pid_simulation(simulation, pid_gains, time_step, goal_position, max_iter
 
 def main_simulation(model_path):
     """Main pipeline to simulate robot movement based on root tip coordinates."""
-    simulation = Simulation(num_agents=1, render=True, model_path=model_path)
+    simulation = Simulation(num_agents=1, render=True, cv_model_path=model_path, rl_model=None)
 
     try:
         # Load the image and extract root tips

@@ -11,10 +11,20 @@ from cv_pipeline import run_pipeline, combined_loss, f1_metric  # Importing requ
 #logging.basicConfig(level=logging.INFO)
 
 class Simulation:
-    def __init__(self, num_agents, render=True, rgb_array=False, model_path=None):
+    def __init__(self, num_agents, render, rl_model, cv_model_path, rgb_array=False):
+        self.num_agents = num_agents
         self.render = render
-        self.rgb_array = rgb_array
-        self.cv_model = None
+        self.rl_model = rl_model
+        self.rgb_array = rgb_array  # Initialize the rgb_array attribute
+
+
+                # Load CV model
+        if os.path.exists(cv_model_path):
+            self.cv_model = tf.keras.models.load_model(
+                cv_model_path, custom_objects={"combined_loss": combined_loss, "f1_metric": f1_metric}
+            )        
+        else:
+            raise FileNotFoundError(f"CV model file not found: {cv_model_path}")
 
         if render:
             mode = p.GUI  # for graphical version
@@ -33,13 +43,6 @@ class Simulation:
         random_texture_index = texture_list.index(random_texture)
         self.plate_image_path = f'textures/_plates/{os.listdir("textures/_plates")[random_texture_index]}'
         self.textureId = p.loadTexture(f'textures/{random_texture}')
-
-        # Load the CV model if a path is provided
-        if model_path:
-            logging.info(f"Loading CV model from: {model_path}")
-            self.cv_model = tf.keras.models.load_model(
-                model_path, custom_objects={"combined_loss": combined_loss, "f1_metric": f1_metric}
-            )
 
         # Run the CV pipeline to extract 3D coordinates
         if self.cv_model:
@@ -455,3 +458,17 @@ class Simulation:
     # close the simulation
     def close(self):
         p.disconnect()
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
