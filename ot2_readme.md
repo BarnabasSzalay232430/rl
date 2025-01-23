@@ -1,11 +1,11 @@
-Reinforcement Learning Environment for Pipette Control
+### Reinforcement Learning Environment for Pipette Control  
 This repository contains a custom reinforcement learning (RL) environment for controlling a pipette in a 3D workspace. The environment is compatible with the Gymnasium API and has been tested using stable-baselines3. It is designed to facilitate reinforcement learning research in robotics simulation.
 
 Project Structure
 .
 ├── ot2_env.py                # Script 1: Defines the custom Gym environment (OT2Env)
 ├── test_env.py               # Script 2: Tests the environment compatibility and functionality
-├── README.md                 # Instructions for environment setup and usage
+├── ot2_readme.md                 # Instructions for environment setup and usage
 
 Environment Description
 The OT2Env class implements a custom RL environment that follows the Gymnasium interface. The agent controls a pipette's position in 3D space to reach a predefined goal while optimizing for efficiency.
