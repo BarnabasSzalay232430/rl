@@ -130,7 +130,9 @@ def execute_multiple_pid_tests(gain_values, time_step, test_count=1, hold_durati
     logging.info("Starting multiple PID tests.")
 
     for test_index in range(test_count):
-        goal_position = [0.24633, 0.19179, 0.17000]
+        goal_position = [np.random.uniform(x_min, x_max), 
+                         np.random.uniform(y_min, y_max), 
+                         np.random.uniform(z_min, z_max)]
 
         logging.info(f"Test {test_index + 1}/{test_count}: Target position: {goal_position}")
         result = run_pid_simulation(

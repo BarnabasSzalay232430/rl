@@ -6,7 +6,7 @@ import logging
 import os
 import random
 import tensorflow as tf
-from cv_pipeline import run_pipeline, combined_loss, f1_metric  # Importing required functions
+from cv_pipeline2 import run_pipeline, combined_loss, f1_metric  # Importing required functions
 
 #logging.basicConfig(level=logging.INFO)
 

@@ -5,7 +5,7 @@ import os
 import json
 import numpy as np
 import pybullet as p
-from sim_class import Simulation
+from sim_class_robotics_pipeline import Simulation
 import time
 from cv_pipeline import run_pipeline
 
