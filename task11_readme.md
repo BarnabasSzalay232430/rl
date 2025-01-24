@@ -90,3 +90,10 @@ total_timesteps: 2000000
 
 This model reached the lowest episode length of 60, also it got really close to max reward. After like 2 million iterations it starts to become worse and worse. Its peak is around 1.5m iterations with the lowest episode lenght and highest rewards
 
+4. Personal Best model vs Team's Best Model  
+<img title="AVG Reward" alt="Alt text" src="rl_performance_visuals/ownrl_vs_teamrl_speed.png">
+<img title="AVG Reward" alt="Alt text" src="rl_performance_visuals/ownrl_vs_teamrl_accuracy.png">
+
+Performance is very similar, in the visualized run the team model performs marginally better in inoculating root tips, but other runs showed personal model as faster, so the their performance is very similiar. I decided to go with my personal model as my final.
+
+

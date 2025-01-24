@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import time
 import logging
 from sim_class_robotics_pipeline import Simulation
-from pid_class import PIDController
 from stable_baselines3 import PPO
 import os
 
@@ -18,14 +17,14 @@ print("Current working directory:", os.getcwd())
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Constants
-PID_GAINS = {"Kp": [15.0, 15.0, 15.0], "Ki": [0.0, 0.0, 0.0], "Kd": [0.8, 0.8, 0.8]}  # PID controller gains
-TIME_STEP = 1.0  # Time interval for PID updates
+MODEL_1_PATH = "C:/Users/szala/Documents/GitHub/rl/best_model.zip"  # Path to the first RL model
+MODEL_2_PATH = "C:/Users/szala/Documents/GitHub/rl/best_personal_model.zip"  # Path to the second RL model
+CV_MODEL_PATH = "C:/Users/szala/Documents/GitHub/renforcement_learning_232430/232430_unet_model_128px_v9md_checkpoint.keras"  # Path to the CV model
+TIME_STEP = 1.0  # Time interval for updates
 ACCURACY_THRESHOLD = 0.001  # Distance threshold to consider the goal position reached
 HOLD_DURATION = 50  # Number of consecutive steps within the threshold to confirm success
 MAX_ITERATIONS = 1000  # Maximum number of iterations for each simulation
 START_POSITION = [0.10775, 0.062, 0.17]  # Initial pipette position
-MODEL_ZIP_PATH = "C:/Users/szala/Documents/GitHub/rl/best_personal_model.zip"  # Path to the RL model
-CV_MODEL_PATH = "C:/Users/szala/Documents/GitHub/renforcement_learning_232430/232430_unet_model_128px_v9md_checkpoint.keras"  # Path to the CV model
 
 # Helper Functions
 def load_rl_model(model_path):
@@ -41,13 +40,9 @@ def load_rl_model(model_path):
     logging.info(f"Loading RL model from: {model_path}")
     return PPO.load(model_path)
 
-
 def initialize_simulation_and_coordinates(cv_model_path):
     """
     Initialize the simulation and extract the plate image and root coordinates.
-
-    This function initializes the simulation with a random plate image, extracts the
-    plate image path and root coordinates using the CV model, and returns them.
 
     Args:
         cv_model_path (str): Path to the CV model for root tip detection.
@@ -70,19 +65,15 @@ def initialize_simulation_and_coordinates(cv_model_path):
 
     return simulation, plate_image, root_coordinates
 
-
-def reinitialize_simulation_with_image(plate_image, root_coordinates, cv_model_path, rl_model=None):
+def reinitialize_simulation_with_image(plate_image, root_coordinates, cv_model_path, rl_model):
     """
     Reinitialize a simulation with a specific plate image and pre-extracted root coordinates.
-
-    This function ensures that the same plate image and root coordinates are used across
-    different controllers (PID and RL) to maintain consistency during benchmarking.
 
     Args:
         plate_image (str): Path to the plate image to use.
         root_coordinates (list): Pre-extracted root coordinates.
         cv_model_path (str): Path to the CV model.
-        rl_model: RL model to use, if any (default: None).
+        rl_model: RL model to use.
 
     Returns:
         Simulation: Reinitialized simulation object with the specified plate image and coordinates.
@@ -94,84 +85,40 @@ def reinitialize_simulation_with_image(plate_image, root_coordinates, cv_model_p
     logging.info(f"Reinitialized simulation with pre-loaded plate image: {plate_image}")
     return simulation
 
-
-def benchmark_controllers():
+def benchmark_models():
     """
-    Benchmark the performance of PID and RL controllers.
-
-    This function benchmarks the performance of both the PID and RL controllers using
-    the same plate image and root coordinates to ensure consistency. It logs and returns
-    the results for both controllers.
+    Benchmark the performance of two RL models.
 
     Returns:
-        tuple: Results for the PID controller and RL controller.
+        tuple: Results for the two RL models.
     """
     # Step 1: Initialize the first simulation and extract plate image and root coordinates
-    simulation_pid, plate_image, root_coordinates = initialize_simulation_and_coordinates(CV_MODEL_PATH)
+    simulation, plate_image, root_coordinates = initialize_simulation_and_coordinates(CV_MODEL_PATH)
 
-    # Step 2: Reinitialize the RL simulation with the same plate image and coordinates
-    rl_model = load_rl_model(MODEL_ZIP_PATH)
-    simulation_rl = reinitialize_simulation_with_image(plate_image, root_coordinates, CV_MODEL_PATH, rl_model)
+    # Step 2: Load the two RL models
+    model_1 = load_rl_model(MODEL_1_PATH)
+    model_2 = load_rl_model(MODEL_2_PATH)
+
+    # Step 3: Reinitialize simulations with the same plate image and coordinates
+    simulation_model_1 = reinitialize_simulation_with_image(plate_image, root_coordinates, CV_MODEL_PATH, model_1)
+    simulation_model_2 = reinitialize_simulation_with_image(plate_image, root_coordinates, CV_MODEL_PATH, model_2)
 
     # Benchmarking results
-    pid_results = []
-    rl_results = []
+    model_1_results = []
+    model_2_results = []
 
     for idx, goal_position in enumerate(root_coordinates):
         logging.info(f"Benchmarking for root tip {idx + 1}: {goal_position}")
 
-        # Benchmark PID controller
-        pid_time, pid_distance = run_pid_simulation(simulation_pid, goal_position)
-        pid_results.append({"time": pid_time, "distance": pid_distance})
+        # Benchmark Model 1
+        time_1, distance_1 = run_rl_simulation(simulation_model_1, model_1, goal_position)
+        model_1_results.append({"time": time_1, "distance": distance_1})
 
-        # Benchmark RL controller
-        rl_time, rl_distance = run_rl_simulation(simulation_rl, rl_model, goal_position)
-        rl_results.append({"time": rl_time, "distance": rl_distance})
+        # Benchmark Model 2
+        time_2, distance_2 = run_rl_simulation(simulation_model_2, model_2, goal_position)
+        model_2_results.append({"time": time_2, "distance": distance_2})
 
-    return pid_results, rl_results
-
-
-def run_pid_simulation(simulation, goal_position):
-    """
-    Run the PID simulation for a single root tip.
-
-    Args:
-        simulation (Simulation): The simulation environment.
-        goal_position (list): Target position to reach.
-
-    Returns:
-        tuple: Elapsed time and final distance to the target position.
-    """
-    controller = PIDController(PID_GAINS['Kp'], PID_GAINS['Ki'], PID_GAINS['Kd'], TIME_STEP)
-    simulation.reset(num_agents=1)
-    simulation.set_start_position(*START_POSITION)
-    controller.reset()
-
-    in_threshold_counter = 0
-    current_position = np.array(simulation.get_pipette_position(simulation.robotIds[0]))
-    start_time = time.time()
-
-    for _ in range(MAX_ITERATIONS):
-        # Compute control signals using PID
-        control_signals = controller.compute(current_position, goal_position)
-        action = np.clip(control_signals, -1, 1)  # Clip control signals to valid range
-        simulation.run([np.concatenate([action, [0.0]])])  # Run simulation step
-
-        # Update current position and calculate distance to the goal
-        current_position = np.array(simulation.get_pipette_position(simulation.robotIds[0]))
-        distance_to_goal = np.linalg.norm(current_position - goal_position)
-
-        if distance_to_goal <= ACCURACY_THRESHOLD:
-            in_threshold_counter += 1
-            if in_threshold_counter >= HOLD_DURATION:
-                elapsed_time = time.time() - start_time
-                return elapsed_time, distance_to_goal
-        else:
-            in_threshold_counter = 0
-
-    elapsed_time = time.time() - start_time
-    return elapsed_time, distance_to_goal
-
+    return model_1_results, model_2_results
 
 def run_rl_simulation(simulation, rl_model, goal_position):
     """
@@ -213,51 +160,49 @@ def run_rl_simulation(simulation, rl_model, goal_position):
     elapsed_time = time.time() - start_time
     return elapsed_time, distance_to_goal
 
-
-def visualize_results(pid_results, rl_results):
+def visualize_results(model_1_results, model_2_results):
     """
     Visualize the benchmarking results using bar plots.
 
     Args:
-        pid_results (list): Results for the PID controller.
-        rl_results (list): Results for the RL controller.
+        model_1_results (list): Results for the first RL model.
+        model_2_results (list): Results for the second RL model.
     """
-    pid_times = [r["time"] for r in pid_results]
-    rl_times = [r["time"] for r in rl_results]
-    pid_distances = [r["distance"] for r in pid_results]
-    rl_distances = [r["distance"] for r in rl_results]
+    model_1_times = [r["time"] for r in model_1_results]
+    model_2_times = [r["time"] for r in model_2_results]
+    model_1_distances = [r["distance"] for r in model_1_results]
+    model_2_distances = [r["distance"] for r in model_2_results]
 
     # Plot time comparison
     plt.figure()
-    plt.bar(["PID", "RL"], [np.mean(pid_times), np.mean(rl_times)], yerr=[np.std(pid_times), np.std(rl_times)], capsize=5)
+    plt.bar(["Team Model", "Personal Model"], [np.mean(model_1_times), np.mean(model_2_times)], 
+            yerr=[np.std(model_1_times), np.std(model_2_times)], capsize=5)
     plt.title("Average Time to Reach Goal")
     plt.ylabel("Time (s)")
+    plt.savefig("average_time_to_goal.png")
     plt.show()
 
     # Plot distance comparison
     plt.figure()
-    plt.bar(["PID", "RL"], [np.mean(pid_distances), np.mean(rl_distances)], yerr=[np.std(pid_distances), np.std(rl_distances)], capsize=5)
+    plt.bar(["Team Model", "Personal Moodel"], [np.mean(model_1_distances), np.mean(model_2_distances)], 
+            yerr=[np.std(model_1_distances), np.std(model_2_distances)], capsize=5)
     plt.title("Average Final Distance to Goal")
     plt.ylabel("Distance (m)")
+    plt.savefig("average_distance_to_goal.png")
     plt.show()
-
 
 def main():
     """
-    Main function to benchmark controllers and visualize results.
-
-    This function benchmarks both the PID and RL controllers, saves the results
-    to a JSON file, and visualizes the results using bar plots.
+    Main function to benchmark RL models and visualize results.
     """
-    pid_results, rl_results = benchmark_controllers()
+    model_1_results, model_2_results = benchmark_models()
 
     # Save results to a JSON file
     with open("benchmark_results.json", "w") as f:
-        json.dump({"PID": pid_results, "RL": rl_results}, f, indent=4)
+        json.dump({"Model 1": model_1_results, "Model 2": model_2_results}, f, indent=4)
 
     # Visualize the benchmarking results
-    visualize_results(pid_results, rl_results)
-
+    visualize_results(model_1_results, model_2_results)
 
 if __name__ == "__main__":
     main()
