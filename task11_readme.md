@@ -94,6 +94,6 @@ This model reached the lowest episode length of 60, also it got really close to 
 <img title="AVG Reward" alt="Alt text" src="rl_performance_visuals/ownrl_vs_teamrl_speed.png">
 <img title="AVG Reward" alt="Alt text" src="rl_performance_visuals/ownrl_vs_teamrl_accuracy.png">
 
-Performance is very similar, in the visualized run the team model performs marginally better in inoculating root tips, but other runs showed personal model as faster, so the their performance is very similiar. I decided to go with my personal model as my final.
+Performance is very similar, in the visualized run the personal model performs marginally better in terms of speed but worse in accuracy, but other runs showed team model as faster, so the their performance is very similiar. I decided to go with my personal model as my final model, because it is a little faster on average, and, because I trained the model and it reached this performance in less steps during training.
 
 

@@ -24,7 +24,7 @@ HOLD_DURATION = 50  # Number of consecutive steps within the threshold required 
 MAX_ITERATIONS = 1000  # Maximum iterations allowed for a simulation
 TIME_STEP = 1.0  # Time interval for PID control
 PID_GAINS = {"Kp": [15.0, 15.0, 15.0], "Ki": [0.0, 0.0, 0.0], "Kd": [0.8, 0.8, 0.8]}  # PID gains
-MODEL_ZIP_PATH = r"C:\Users\szala\Documents\GitHub\rl\best_model.zip"  # Path to the RL model
+MODEL_ZIP_PATH = r"C:\Users\szala\Documents\GitHub\rl\best_personal_model.zip"  # Path to the RL model
 CV_MODEL_PATH = r"C:\Users\szala\Documents\GitHub\renforcement_learning_232430\232430_unet_model_128px_v9md_checkpoint.keras"  # Path to the CV model
 
 
