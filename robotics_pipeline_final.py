@@ -214,5 +214,5 @@ def main_simulation(use_rl=True):
 
 # Main Execution
 if __name__ == "__main__":
-    use_rl = True  # Set to False to use PID control
+    use_rl = False  # Set to False to use PID control
     main_simulation(use_rl=use_rl)

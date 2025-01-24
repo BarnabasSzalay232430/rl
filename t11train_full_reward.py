@@ -52,7 +52,7 @@ model = PPO(
 
 # Classic Callback
 wandb_callback = WandbCallback(
-    model_save_freq = 100_000,
+    model_save_freq = 1_000,
     model_save_path = f"models/{run.id}",
     verbose = 2
 )
